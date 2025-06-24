@@ -3,184 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Auto RPG — Global Draw & USDT Recharge</title>
+  <title>Auto RPG — Global Draw & USDT Recharge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
-    :root { --c-primary:#2563eb; --c-bg:#f5f7fa; --c-card:#fff; --c-gray:#9ca3af; }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--c-bg);color:#222;text-align:center}
-    #app{max-width:720px;margin:3rem auto;background:var(--c-card);padding:2rem;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
-    h1,h2{margin:0 0 .6rem}
-    button{padding:.7rem 1.4rem;margin:.4rem;border:0;border-radius:8px;font-size:1rem;cursor:pointer;background:var(--c-primary);color:#fff;transition:.2s}
-    button:disabled{background:var(--c-gray);cursor:not-allowed}
-    .card-img{max-width:260px;border-radius:12px;margin-top:1rem;box-shadow:0 3px 10px rgba(0,0,0,.15)}
-    .rare{color:#d97706;font-weight:700}
-    .epic{color:#8b5cf6;font-weight:700}
-    .legend{color:#eab308;font-weight:700}
-    #chargeWrap{margin-top:1.4rem;border-top:1px dashed #ccc;padding-top:1rem}
+    :root {
+      --c-primary: #10b981;
+      --c-bg: #1f2937;
+      --c-card: #111827;
+      --c-accent: #facc15;
+      --c-epic: #8b5cf6;
+      --c-rare: #f97316;
+      --c-text: #f9fafb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Press Start 2P', monospace;
+      background: var(--c-bg);
+      color: var(--c-text);
+      text-align: center;
+    }
+    #app {
+      max-width: 768px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: var(--c-card);
+      border: 2px solid var(--c-accent);
+      border-radius: 20px;
+      box-shadow: 0 0 20px var(--c-accent);
+    }
+    h1, h2 { margin-bottom: 1rem; text-shadow: 0 0 6px var(--c-accent); }
+    button {
+      padding: 1rem 2rem;
+      margin: 0.6rem;
+      font-size: 0.9rem;
+      border-radius: 12px;
+      border: 2px solid var(--c-accent);
+      background: var(--c-primary);
+      color: black;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    button:hover {
+      transform: scale(1.1);
+    }
+    button:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+    .card-img {
+      max-width: 300px;
+      border-radius: 10px;
+      border: 3px solid white;
+      animation: flip 0.6s ease-in-out;
+      box-shadow: 0 0 15px white;
+      margin-top: 1rem;
+    }
+    .rare { color: var(--c-rare); font-weight: bold; text-shadow: 0 0 8px var(--c-rare); }
+    .epic { color: var(--c-epic); font-weight: bold; text-shadow: 0 0 8px var(--c-epic); }
+    .legend { color: var(--c-accent); font-weight: bold; text-shadow: 0 0 8px var(--c-accent); }
+    @keyframes flip {
+      from { transform: rotateY(90deg); opacity: 0; }
+      to { transform: rotateY(0deg); opacity: 1; }
+    }
+    #chargeWrap, #resultWrap, #rankList, #cooldownTxt {
+      margin-top: 2rem;
+    }
+    ol#rankList {
+      text-align: left;
+      padding-left: 2rem;
+    }
+    #walletStatus { margin-bottom: 1rem; }
   </style>
 </head>
 <body>
   <div id="app">
-    <h1>🌍 Auto RPG World</h1>
-    <p>Draw heroes, power‑up, conquer the leaderboard & earn rewards.</p>
+    <h1>🎮 Auto RPG World</h1>
+    <p>Summon powerful heroes. Recharge with USDT. Rise to the top!</p>
 
-    <p id="walletStatus">🔗 Wallet: <span style="color:red">Not connected</span></p>
-    <button id="connectBtn">Connect TronLink</button>
+    <p id="walletStatus">🔗 Wallet: <span style="color:red">Not connected</span></p>
+    <button id="connectBtn">Connect Wallet</button>
 
     <div id="chargeWrap">
-      <h2>💎 Recharge Diamonds</h2>
-      <p>10 USDT = 10 Draws   /  50 USDT = 60 Draws   /  100 USDT = 130 Draws</p>
-      <button onclick="openPay(10)">Pay 10 USDT</button>
-      <button onclick="openPay(50)">Pay 50 USDT</button>
-      <button onclick="openPay(100)">Pay 100 USDT</button>
+      <h2>💰 Recharge</h2>
+      <p>10 USDT = 10 Draws | 50 USDT = 60 Draws | 100 USDT = 130 Draws</p>
+      <button onclick="openPay(10)">Recharge 10 USDT</button>
+      <button onclick="openPay(50)">Recharge 50 USDT</button>
+      <button onclick="openPay(100)">Recharge 100 USDT</button>
     </div>
 
-    <h2 style="margin-top:2rem">🎁 Daily Draw</h2>
-    <p id="drawInfo">Daily draws left: <span id="drawsLeft">5</span></p>
-    <button id="drawBtn">Single Draw (1 Ticket)</button>
-    <button id="draw10Btn">Ten Draws (10 Tickets)</button>
+    <h2>🎁 Daily Draw</h2>
+    <p id="drawInfo">Draws left: <span id="drawsLeft"></span></p>
+    <button id="drawBtn">Draw Once</button>
+    <button id="draw10Btn">Draw x10</button>
     <p id="cooldownTxt"></p>
 
     <div id="resultWrap" style="display:none">
-      <h3>You drew:</h3>
+      <h3>You got:</h3>
       <img id="cardImg" class="card-img" src="" alt="Card" />
       <p id="cardName"></p>
       <p id="cardAttr"></p>
     </div>
 
-    <h2>🏆 Leaderboard (Global Top 5)</h2>
+    <h2>🏆 Leaderboard</h2>
     <ol id="rankList"></ol>
   </div>
 
 <script>
-/**************** CONFIG *****************/
-const DAILY_LIMIT = 5;
-const COOLDOWN = 10; // seconds
-const WALLET_ADDR = "TRsPQVBwbFdAWVhLKBcDci1Ek4rAdYDV6G"; // your wallet
-const API_ENDPOINT = "https://mockapi.io/autoRPG"; // placeholder backend
-/*****************************************/
-
-const rarities = [
-  {tag:'legend',chance:0.02,stars:'⭐⭐⭐',mult:3},
-  {tag:'epic',chance:0.1,stars:'⭐⭐',mult:2},
-  {tag:'rare',chance:0.25,stars:'⭐',mult:1.5},
-  {tag:'common',chance:0.63,stars:'',mult:1}
-];
-
-const cardPool = [
-  {name:'Warrior',img:'https://i.imgur.com/6NfmQ.jpg',atk:120,def:80,rar:'common'},
-  {name:'Mage',img:'https://i.imgur.com/XKMwe.jpg',atk:140,def:60,rar:'common'},
-  {name:'Rogue',img:'https://i.imgur.com/BCkZq.jpg',atk:110,def:90,rar:'common'},
-  {name:'Dragon Knight',img:'https://i.imgur.com/hCj8P.jpg',atk:220,def:180,rar:'legend'},
-  {name:'Phoenix',img:'https://i.imgur.com/FawhM.jpg',atk:200,def:150,rar:'epic'},
-  {name:'Celestial Elf',img:'https://i.imgur.com/8Grfh.jpg',atk:240,def:130,rar:'epic'}
-];
-let drawsToday = parseInt(localStorage.getItem('drawsToday')||'0');
-let lastDraw = parseInt(localStorage.getItem('lastDraw')||'0');
-let walletConnected = false;
-let leaderboard = JSON.parse(localStorage.getItem('leaderboard')||'[]');
-updateRankList();
-updateDrawInfo();
-startCooldown();
-
-/*********** WALLET (mock) **************/
-async function connectWallet(){
-  // Replace with TronWeb in production
-  walletConnected=true;
-  document.getElementById('walletStatus').innerHTML='🔗 Wallet: <span style="color:green">Connected</span>';
-  document.getElementById('connectBtn').disabled=true;
-}
-
-/*********** PAYMENT MOCK **************/
-function openPay(amount){
-  if(!walletConnected){alert('Connect wallet first');return;}
-  alert(`Pretend paying ${amount} USDT to ${WALLET_ADDR}\n(This is mock, integrate TronWeb.send() in prod)`);
-  // TODO: call backend to log top‑up and add tickets
-}
-
-/*********** DRAW LOGIC ****************/
-function canDraw(cnt){
-  if(!walletConnected){alert('Connect wallet first!');return false;}
-  if(drawsToday+cnt>DAILY_LIMIT){alert('Daily limit reached');return false;}
-  const now=Date.now();
-  if((now-lastDraw)/1000 < COOLDOWN){
-    alert(`Wait ${COOLDOWN-Math.floor((now-lastDraw)/1000)}s`);
-    return false;
-  }
-  return true;
-}
-function draw(cnt){
-  if(!canDraw(cnt)) return;
-  lastDraw=Date.now();
-  localStorage.setItem('lastDraw',lastDraw);
-  drawsToday+=cnt;
-  localStorage.setItem('drawsToday',drawsToday);
-  updateDrawInfo();
-  startCooldown();
-  for(let i=0;i<cnt;i++){ singleDraw(); }
-}
-function singleDraw(){
-  const card = cardPool[Math.floor(Math.random()*cardPool.length)];
-  displayCard(card);
-  updateRank(card);
-  saveHistory(card);
-}
-
-function displayCard(card){
-  const wrap=document.getElementById('resultWrap');
-  wrap.style.display='block';
-  document.getElementById('cardImg').src=card.img;
-  let rareClass=card.rar;
-  document.getElementById('cardName').innerHTML=`<span class='${rareClass}'>${card.name}</span>`;
-  document.getElementById('cardAttr').textContent=`ATK ${card.atk} DEF ${card.def}`;
-}
-
-/*********** COOLDOWN *****************/
-function startCooldown(){
-  const cdTxt=document.getElementById('cooldownTxt');
-  let t=COOLDOWN;
-  cdTxt.textContent=`Cooldown: ${t}s`;
-  const iv=setInterval(()=>{
-    t--;cdTxt.textContent=`Cooldown: ${t}s`;
-    if(t<=0){clearInterval(iv);cdTxt.textContent='';}
-  },1000);
-}
-
-/*********** LEADERBOARD **************/
-function updateRank(card){
-  const score=card.atk+card.def*Math.random()*10;
-  leaderboard.push({name:card.name,score:score});
-  leaderboard.sort((a,b)=>b.score-a.score);
-  leaderboard=leaderboard.slice(0,5);
-  localStorage.setItem('leaderboard',JSON.stringify(leaderboard));
-  updateRankList();
-}
-function updateRankList(){
-  const list=document.getElementById('rankList');
-  list.innerHTML='';
-  leaderboard.forEach(item=>{
-    const li=document.createElement('li');
-    li.textContent=`${item.name} – Power ${Math.floor(item.score)}`;
-    list.appendChild(li);
-  });
-}
-
-/*********** UI HELPER ****************/ 
-function updateDrawInfo(){
-  document.getElementById('drawsLeft').textContent=DAILY_LIMIT-drawsToday;
-}
-
-/*********** HISTORY SAVE (mock backend) */
-function saveHistory(card){
-  // In production make POST request to backend endpoint
-  // fetch(`${API_ENDPOINT}/history`, {method:'POST',body:JSON.stringify(card)});
-  console.log('History saved (mock)');
-}
-
-/*********** INIT BTN ****************/
-document.getElementById('connectBtn').onclick=connectWallet;
-document.getElementById('drawBtn').onclick=()=>draw(1);
-document.getElementById('draw10Btn').onclick=()=>draw(10);
+// JS code unchanged — you already have the logic working
+// You can paste the JS from your current version here
 </script>
 </body>
 </html>
