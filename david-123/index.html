@@ -1,13 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Auto RPG Game</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auto RPG — Global Draw & USDT Recharge</title>
+  <style>
+    :root { --c-primary:#2563eb; --c-bg:#f5f7fa; --c-card:#fff; --c-gray:#9ca3af; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--c-bg);color:#222;text-align:center}
+    #app{max-width:720px;margin:3rem auto;background:var(--c-card);padding:2rem;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+    h1,h2{margin:0 0 .6rem}
+    button{padding:.7rem 1.4rem;margin:.4rem;border:0;border-radius:8px;font-size:1rem;cursor:pointer;background:var(--c-primary);color:#fff;transition:.2s}
+    button:disabled{background:var(--c-gray);cursor:not-allowed}
+    .card-img{max-width:260px;border-radius:12px;margin-top:1rem;box-shadow:0 3px 10px rgba(0,0,0,.15)}
+    .rare{color:#d97706;font-weight:700}
+    .epic{color:#8b5cf6;font-weight:700}
+    .legend{color:#eab308;font-weight:700}
+    #chargeWrap{margin-top:1.4rem;border-top:1px dashed #ccc;padding-top:1rem}
+  </style>
 </head>
 <body>
-  <h1>Welcome to Auto RPG World!</h1>
-  <p>This is a demo page for your game.</p>
-  <p>Recharge in USDT. English UI. Global Access.</p>
-  <button onclick="alert('You drew a rare hero!')">Draw</button>
+  <div id="app">
+    <h1>🌍 Auto RPG World</h1>
+    <p>Draw heroes, power‑up, conquer the leaderboard & earn rewards.</p>
+
+    <p id="walletStatus">🔗 Wallet: <span style="color:red">Not connected</span></p>
+    <button id="connectBtn">Connect TronLink</button>
+
+    <div id="chargeWrap">
+      <h2>💎 Recharge Diamonds</h2>
+      <p>10 USDT = 10 Draws   /  50 USDT = 60 Draws   /  100 USDT = 130 Draws</p>
+      <button onclick="openPay(10)">Pay 10 USDT</button>
+      <button onclick="openPay(50)">Pay 50 USDT</button>
+      <button onclick="openPay(100)">Pay 100 USDT</button>
+    </div>
+
+    <h2 style="margin-top:2rem">🎁 Daily Draw</h2>
+    <p id="drawInfo">Daily draws left: <span id="drawsLeft">5</span></p>
+    <button id="drawBtn">Single Draw (1 Ticket)</button>
+    <button id="draw10Btn">Ten Draws (10 Tickets)</button>
+    <p id="cooldownTxt"></p>
+
+    <div id="resultWrap" style="display:none">
+      <h3>You drew:</h3>
+      <img id="cardImg" class="card-img" src="" alt="Card" />
+      <p id="cardName"></p>
+      <p id="cardAttr"></p>
+    </div>
+
+    <h2>🏆 Leaderboard (Global Top 5)</h2>
+    <ol id="rankList"></ol>
+  </div>
+
+<script>
+/**************** CONFIG *****************/
+const DAILY_LIMIT = 5;
+const COOLDOWN = 10; // seconds
+const WALLET_ADDR = "TRsPQVBwbFdAWVhLKBcDci1Ek4rAdYDV6G"; // your wallet
+const API_ENDPOINT = "https://mockapi.io/autoRPG"; // placeholder backend
+/*****************************************/
+
+const rarities = [
+  {tag:'legend',chance:0.02,stars:'⭐⭐⭐',mult:3},
+  {tag:'epic',chance:0.1,stars:'⭐⭐',mult:2},
+  {tag:'rare',chance:0.25,stars:'⭐',mult:1.5},
+  {tag:'common',chance:0.63,stars:'',mult:1}
+];
+
+const cardPool = [
+  {name:'Warrior',img:'https://i.imgur.com/6NfmQ.jpg',atk:120,def:80,rar:'common'},
+  {name:'Mage',img:'https://i.imgur.com/XKMwe.jpg',atk:140,def:60,rar:'common'},
+  {name:'Rogue',img:'https://i.imgur.com/BCkZq.jpg',atk:110,def:90,rar:'common'},
+  {name:'Dragon Knight',img:'https://i.imgur.com/hCj8P.jpg',atk:220,def:180,rar:'legend'},
+  {name:'Phoenix',img:'https://i.imgur.com/FawhM.jpg',atk:200,def:150,rar:'epic'},
+  {name:'Celestial Elf',img:'https://i.imgur.com/8Grfh.jpg',atk:240,def:130,rar:'epic'}
+];
+let drawsToday = parseInt(localStorage.getItem('drawsToday')||'0');
+let lastDraw = parseInt(localStorage.getItem('lastDraw')||'0');
+let walletConnected = false;
+let leaderboard = JSON.parse(localStorage.getItem('leaderboard')||'[]');
+updateRankList();
+updateDrawInfo();
+startCooldown();
+
+/*********** WALLET (mock) **************/
+async function connectWallet(){
+  // Replace with TronWeb in production
+  walletConnected=true;
+  document.getElementById('walletStatus').innerHTML='🔗 Wallet: <span style="color:green">Connected</span>';
+  document.getElementById('connectBtn').disabled=true;
+}
+
+/*********** PAYMENT MOCK **************/
+function openPay(amount){
+  if(!walletConnected){alert('Connect wallet first');return;}
+  alert(`Pretend paying ${amount} USDT to ${WALLET_ADDR}\n(This is mock, integrate TronWeb.send() in prod)`);
+  // TODO: call backend to log top‑up and add tickets
+}
+
+/*********** DRAW LOGIC ****************/
+function canDraw(cnt){
+  if(!walletConnected){alert('Connect wallet first!');return false;}
+  if(drawsToday+cnt>DAILY_LIMIT){alert('Daily limit reached');return false;}
+  const now=Date.now();
+  if((now-lastDraw)/1000 < COOLDOWN){
+    alert(`Wait ${COOLDOWN-Math.floor((now-lastDraw)/1000)}s`);
+    return false;
+  }
+  return true;
+}
+function draw(cnt){
+  if(!canDraw(cnt)) return;
+  lastDraw=Date.now();
+  localStorage.setItem('lastDraw',lastDraw);
+  drawsToday+=cnt;
+  localStorage.setItem('drawsToday',drawsToday);
+  updateDrawInfo();
+  startCooldown();
+  for(let i=0;i<cnt;i++){ singleDraw(); }
+}
+function singleDraw(){
+  const card = cardPool[Math.floor(Math.random()*cardPool.length)];
+  displayCard(card);
+  updateRank(card);
+  saveHistory(card);
+}
+
+function displayCard(card){
+  const wrap=document.getElementById('resultWrap');
+  wrap.style.display='block';
+  document.getElementById('cardImg').src=card.img;
+  let rareClass=card.rar;
+  document.getElementById('cardName').innerHTML=`<span class='${rareClass}'>${card.name}</span>`;
+  document.getElementById('cardAttr').textContent=`ATK ${card.atk} DEF ${card.def}`;
+}
+
+/*********** COOLDOWN *****************/
+function startCooldown(){
+  const cdTxt=document.getElementById('cooldownTxt');
+  let t=COOLDOWN;
+  cdTxt.textContent=`Cooldown: ${t}s`;
+  const iv=setInterval(()=>{
+    t--;cdTxt.textContent=`Cooldown: ${t}s`;
+    if(t<=0){clearInterval(iv);cdTxt.textContent='';}
+  },1000);
+}
+
+/*********** LEADERBOARD **************/
+function updateRank(card){
+  const score=card.atk+card.def*Math.random()*10;
+  leaderboard.push({name:card.name,score:score});
+  leaderboard.sort((a,b)=>b.score-a.score);
+  leaderboard=leaderboard.slice(0,5);
+  localStorage.setItem('leaderboard',JSON.stringify(leaderboard));
+  updateRankList();
+}
+function updateRankList(){
+  const list=document.getElementById('rankList');
+  list.innerHTML='';
+  leaderboard.forEach(item=>{
+    const li=document.createElement('li');
+    li.textContent=`${item.name} – Power ${Math.floor(item.score)}`;
+    list.appendChild(li);
+  });
+}
+
+/*********** UI HELPER ****************/ 
+function updateDrawInfo(){
+  document.getElementById('drawsLeft').textContent=DAILY_LIMIT-drawsToday;
+}
+
+/*********** HISTORY SAVE (mock backend) */
+function saveHistory(card){
+  // In production make POST request to backend endpoint
+  // fetch(`${API_ENDPOINT}/history`, {method:'POST',body:JSON.stringify(card)});
+  console.log('History saved (mock)');
+}
+
+/*********** INIT BTN ****************/
+document.getElementById('connectBtn').onclick=connectWallet;
+document.getElementById('drawBtn').onclick=()=>draw(1);
+document.getElementById('draw10Btn').onclick=()=>draw(10);
+</script>
 </body>
 </html>
